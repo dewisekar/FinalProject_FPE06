@@ -31,7 +31,6 @@ int
 main(int argc, char *argv[])
 {
   int fd1, fd2, n;
-  char *p;
 
   if(argc <= 2){
     printf(1, "touch: missing file operand\n");
@@ -71,6 +70,7 @@ main(int argc, char *argv[])
       printf(1, "cp: path too long\n");
       exit();
     }
+    char *p=0;
     while(read(fd1, &de1, sizeof(de1)) == sizeof(de1)){
       if(de1.inum == 0)
         continue;
@@ -110,14 +110,13 @@ main(int argc, char *argv[])
           write(fd2, buf, n);
          }
        }
-
+         close(fd1);
+         close(fd2);
+         close(fd_tmp);
+         exit();
          
          //printf(2, "%s was deleted\n", buf);
       }
-      close(fd1);
-      close(fd2);
-      close(fd_tmp);
-      exit();
     }
 
     close(fd1);

@@ -20,6 +20,19 @@ main(int argc, char *argv[])
   }
 
 
+  struct stat st;
+    if(fstat(fd1, &st) < 0){
+      printf(2, "ls: cannot stat %s\n", argv[1]);
+      close(fd1);
+      exit();
+    }
+    if(st.type==T_DIR && st.size==32){
+      printf(2,"masuk loh hehe\n");
+      mkdir(argv[2]);
+      exit();
+    }
+
+
   if((fd2 = open(argv[2], O_CREATE|O_RDWR)) < 0){
      printf(1, "mv: cannot create %s\n", argv[1]);
      exit();
