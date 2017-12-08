@@ -50,6 +50,17 @@ fmtname(char *path)
   return buf;
 }
 
+int cekBintang(char *x){
+  int i;
+  for( i = 0; i < strlen(x); i++) {
+    if (x[i]=='*')
+    {
+      return i+1;
+    }
+  }
+
+  return 0;
+}
 
 unsigned char buf[4096];
 int
@@ -61,6 +72,78 @@ main(int argc, char *argv[])
     printf(1, "touch: missing file operand\n");
     exit();
   }
+
+
+  if (strcmp(argv[1], "*")==0)
+   {
+    if (cekBintang(argv[1])==1)
+      { 
+
+        struct dirent de1;
+        int file_ori, file_cp;
+        char bef1[503],bef2[503], *p;
+        if ((fd1=open(".", O_RDONLY)) < 0)
+        {
+          printf(1,"cp: cannot open this directory\n");
+          exit();  
+        }
+
+        struct stat st1;
+        if(fstat(fd1, &st1) < 0){
+        printf(2, "cp: cannot stat this directory");
+        close(fd1);
+        exit();
+        }
+
+
+        mkdir(argv[2]);
+
+        if((fd2 = open(argv[2], O_RDONLY)) < 0){
+        printf(1,"cp: cannot open %s\n", argv[1]);
+        exit();
+        }
+
+        strcpy(bef1, ".");
+        p = bef1+strlen(bef1);
+        *p++ = '/';
+
+        while(read(fd1, &de1, sizeof(de1)) == sizeof(de1)){
+          if(de1.inum == 0)
+            continue;
+          memmove(p, de1.name, DIRSIZ);
+          p[DIRSIZ] = 0;
+          if(stat(bef1, &st1) < 0){
+              printf(1, "cp: cannot stat ini %s\n", bef1);
+              continue;
+            }
+          if(strcmp(fmtname(bef1), ".")!= 0 && strcmp(fmtname(bef1), "..") != 0){
+            
+        
+            if((file_ori = open(bef1, O_RDONLY)) < 0){
+              printf(1,"cp: cannot open this %s\n", bef1);
+              continue;
+            }
+
+            char *dest=strcat(strcat(strcat(bef2, argv[2]), "/"), fmtname(bef1));
+            if ((file_cp=open(dest, O_CREATE |O_RDWR))<0)
+            {
+              printf(1, "cp: cannot open this %s\n", dest);
+              continue;
+            }
+
+            while(( n = read ( file_ori, buf, sizeof(buf))) > 0 ){
+              write(file_cp, buf, n);
+            }
+
+            close(file_ori);
+            close(file_cp);
+          }
+
+
+        }
+      }  
+    exit();
+   }
   
   if(strcmp(argv[1],"-r")==0 || strcmp(argv[1], "-R")== 0){
     struct dirent de1;
@@ -111,7 +194,7 @@ main(int argc, char *argv[])
       p[DIRSIZ] = 0;
       
       if(stat(bef1, &st1) < 0){
-         printf(1, "cp: cannot stat %s\n", buf);
+         printf(1, "cp: cannot stat %s\n", bef1);
          continue;
       }
 
@@ -162,18 +245,49 @@ main(int argc, char *argv[])
        exit();
      }
 
-   if((fd2 = open(argv[2], O_CREATE | O_RDWR)) < 0){
-     printf(1,"cp: cannot create %s\n", argv[2]);
+     if((fd2 = open(argv[2], O_RDONLY)) < 0){
+       printf(1, "mv: cannot create %s\n", argv[2]);
+       exit();
+       } 
 
-     exit();
-   }
+    struct stat st2;
+     if(fstat(fd2, &st2) < 0){
+       printf(2, "ls: cannot stat %s\n", argv[1]);
+       close(fd1);
+       exit();
+     }
+    
+     if(st2.type==T_DIR && st2.size==32){
+
+       char* path=strcat(strcat(argv[2], "/"), fmtname(argv[1]));
+       if((fd2 = open(path, O_CREATE|O_RDWR)) < 0){
+         printf(1, "mv: cannot create %s\n", argv[2]);
+         exit();
+       }
+
+       while(( n = read ( fd1, buf, sizeof(buf))) > 0 ){
+            write(fd2, buf, n);
+        }
+
+       mkdir(argv[2]);
+       close(fd2);
+       close(fd1);
+       exit();
+     }
+
+    else{
+      if((fd2 = open(argv[2], O_CREATE|O_RDWR)) < 0){
+        printf(1, "mv: cannot create %s\n", argv[2]);
+        exit();
+      }
  
-   while(( n = read ( fd1, buf, sizeof(buf))) > 0 ){
-    write(fd2, buf, n);
-   }
-   close(fd1);
-   close(fd2);
-   exit();
- }
-  exit();
+      while(( n = read ( fd1, buf, sizeof(buf))) > 0 ){
+        write(fd2, buf, n);
+      }
+
+      close(fd1);
+      close(fd2);
+      exit();
+    }
+  }
 }
