@@ -74,41 +74,35 @@ main(int argc, char *argv[])
       printf(2,"masuk loh hehe\n");
       mkdir(argv[2]);
       exit();
+      unlink(argv[1]);
     }
 
-    if((fd2 = open(argv[2], O_RDONLY)) < 0){
-     printf(1, "mv: cannot create %s\n", argv[2]);
-     exit();
-    } 
+   
 
-  struct stat st2;
-    if(fstat(fd2, &st2) < 0){
-      printf(2, "ls: cannot stat %s\n", argv[1]);
-      close(fd1);
-      exit();
-    }
     
-    if(st2.type==T_DIR && st2.size==32){
-
-      char* path=strcat(strcat(argv[2], "/"), fmtname(argv[1]));
-      if((fd2 = open(path, O_CREATE|O_RDWR)) < 0){
-        printf(1, "mv: cannot create %s\n", argv[2]);
-        exit();
-      }
-
-      while(( n = read ( fd1, buf, sizeof(buf))) > 0 ){
-            write(fd2, buf, n);
-      }
-
-      mkdir(argv[2]);
-      close(fd2);
-      exit();
-    }
+    
 
   else{
     if((fd2 = open(argv[2], O_CREATE|O_RDWR)) < 0){
-     printf(1, "mv: cannot create %s\n", argv[2]);
-     exit();
+     //berarti fd2 merupakan directory
+        if((fd2 = open(argv[2], O_RDONLY)) < 0){
+          printf(1, "cp: cannot create %s\n", argv[2]);
+          exit();
+        } 
+
+        char* path=strcat(strcat(argv[2], "/"), fmtname(argv[1]));
+        if((fd2 = open(path, O_CREATE|O_RDWR)) < 0){
+          printf(1, "cp: cannot create %s\n", argv[2]);
+          exit();
+        }
+
+        while(( n = read ( fd1, buf, sizeof(buf))) > 0 ){
+            write(fd2, buf, n);
+        }
+        unlink(argv[1]);
+        close(fd2);
+        close(fd1); 
+        exit();
     }
  
     while(( n = read ( fd1, buf, sizeof(buf))) > 0 ){
