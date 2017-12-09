@@ -401,7 +401,7 @@ dec64(uchar *out, char *in, int n)
 	b24 = 0;
 	i = 0;
 	while(n-- > 0){
-		c = t64d[*in++];
+		c = t64d[(unsigned char)*in++];
 		if(c == 255)
 			continue;
 		switch(i){
